@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Average temprature near Cornell Tech</title>
+</head>
+
+<body>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="jquery.csv.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.29.1.min.js" charset="utf-8"></script>
+    <div style="margin: 100px 100px">
+        <div id="tester" style="width:600px; height:250px">
+        <div id="demo"></div>
+        <div class="slidecontainer">
+            <input type="range" min="1950" max="2021" value="1950" class="slider" id="myRange" style="width: 400px">
+        </div>
+        </div>
+    </div>
+    <script>
+        var csv = "./weather.csv"
+        var slider = document.getElementById("myRange");
+        var output = document.getElementById("demo");
+        output.innerHTML = slider.value; // Display the default slider value
+
+        // Update the current slider value (each time you drag the slider handle)
+        slider.oninput = function() {
+            output.innerHTML = this.value;
+        }
+        fetch(csv)
+            .then((res) => res.text())
+            .then((text) => {
+                var data = $.csv.toObjects(text)
+                var dataDict = {}
+                data.forEach(entry => {
+                    var entryDate = new Date(entry.time)
+                    var entryYear = parseInt(entryDate.getFullYear())
+                    var entryMonth = parseInt(entryDate.getMonth())
+                    var entryKtemp = parseInt(entry.Ktemp)
+                    var entryFtemp = (entryKtemp - 273.15) * (9 / 5) + 32
+                    if (typeof dataDict[entryYear] === "undefined") {
+                        dataDict[entryYear] = {}
+                        dataDict[entryYear][entryMonth] = {
+                            totalTemp: entryFtemp,
+                            numberOfDays: 1,
+                            averageTemp: entryFtemp / 1
+                        }
+                    } else if (typeof dataDict[entryYear] !== "undefined" && typeof dataDict[entryYear][entryMonth] === "undefined") {
+                        dataDict[entryYear][entryMonth] = {
+                            totalTemp: entryFtemp,
+                            numberOfDays: 1,
+                            averageTemp: entryFtemp / 1
+                        }
+                    } else if (typeof dataDict[entryYear] !== "undefined" && typeof dataDict[entryYear][entryMonth] !== "undefined") {
+                        dataDict[entryYear][entryMonth].totalTemp = dataDict[entryYear][entryMonth].totalTemp + entryFtemp
+                        dataDict[entryYear][entryMonth].numberOfDays += 1
+                        dataDict[entryYear][entryMonth].averageTemp = dataDict[entryYear][entryMonth].totalTemp / dataDict[entryYear][entryMonth].numberOfDays
+                    }
+                });
+                return dataDict
+            })
+            .then(dataDict => {
+                TESTER = document.getElementById('tester');
+                console.log(Object.keys(dataDict["1950"]).map(month => dataDict["1950"][month].averageTemp))
+                var slider = document.getElementById("myRange");
+                var output = document.getElementById("demo");
+                output.innerHTML = slider.value; // Display the default slider value
+                Plotly.newPlot(TESTER, [{
+                    x: Object.keys(dataDict[slider.value]).map(month => parseInt(month)),
+                    y: Object.keys(dataDict[slider.value]).map(month => dataDict[slider.value][month].averageTemp)
+                }], {
+                    margin: { t: 0 }
+                });
+
+                // Update the current slider value (each time you drag the slider handle)
+                slider.oninput = function() {
+                    output.innerHTML = slider.value;
+                    Plotly.newPlot(TESTER, [{
+                    x: Object.keys(dataDict[this.value]).map(month => parseInt(month)),
+                    y: Object.keys(dataDict[this.value]).map(month => dataDict[this.value][month].averageTemp)
+                }], {
+                    margin: { t: 0 }
+                });
+                }
+            })
+            .catch((e) => console.error(e));
+    </script>
+</body>
+
+</html>
