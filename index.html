@@ -69,27 +69,25 @@
                 var output = document.getElementById("demo");
                 output.innerHTML = slider.value; // Display the default slider value
                 var layout = {
-                    title: `Average temperatures from year ${slider.value}`
+                    title: `Average temperatures from year ${slider.value}`,
+                    margin: { t: 0 }
                 };
                 Plotly.newPlot(TESTER, [{
                     x: Object.keys(dataDict[slider.value]).map(month => parseInt(month)),
                     y: Object.keys(dataDict[slider.value]).map(month => dataDict[slider.value][month].averageTemp)
-                }], {
-                    margin: { t: 0 }
-                });
+                }], layout);
 
                 // Update the current slider value (each time you drag the slider handle)
                 slider.oninput = function() {
                     output.innerHTML = this.value;
                     var layout = {
-                        title: `Average temperatures from year ${this.value}`
+                        title: `Average temperatures from year ${this.value}`,
+                        margin: { t: 0 }
                     };
                     Plotly.newPlot(TESTER, [{
                     x: Object.keys(dataDict[this.value]).map(month => parseInt(month)),
                     y: Object.keys(dataDict[this.value]).map(month => dataDict[this.value][month].averageTemp)
-                }], {
-                    margin: { t: 0 }
-                });
+                }], layout);
                 }
             })
             .catch((e) => console.error(e));
