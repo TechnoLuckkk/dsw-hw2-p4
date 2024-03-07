@@ -14,13 +14,13 @@
     <script src="https://cdn.plot.ly/plotly-2.29.1.min.js" charset="utf-8"></script>
     <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
         <div id="tester"></div>
-        <div style="margin-top: 25px">
+        <!-- <div style="margin-top: 25px">
             <div id="year-marker"></div>
             <div id="avg-marker"></div>
             <div class="slidecontainer">
                 <input type="range" min="1950" max="2021" value="1950" class="slider" id="myRange" style="width: 400px">
             </div>
-        </div>
+        </div> -->
     </div>
     <script>
         var csv = "./weather.csv"
@@ -58,13 +58,10 @@
             })
             .then(dataDict => {
                 TESTER = document.getElementById('tester');
-                let slider = document.getElementById("myRange");
-                let yearMarker = document.getElementById("year-marker");
-                let avgMarker = document.getElementById("avg-marker");
                 function getLayout() {
                     return {
                         title: {
-                            text: `Average temperatures from year ${slider.value}`,
+                            text: `Heatmap of monthy average temperatures`,
                             font: {
                                 family: 'Courier New, monospace',
                                 size: 24
@@ -72,34 +69,22 @@
                             xref: 'paper',
                             y: 0.03,
                         },
-                        margin: { t: 0 },
-                        xaxis: {
-                            tickmode: "array",
-                            tickvals: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ],
-                            ticktext: [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]
-                        }
+                        height: 600
                     }
                 };
 
-                function updateGraphData(value) {
-                    let xVals = Object.keys(dataDict[value]).map(month => parseInt(month))
-                    let yVals = Object.keys(dataDict[value]).map(month => dataDict[value][month].averageTemp)
-                    let sum = yVals.reduce((accumulator, currentValue) => {
-                        return accumulator + currentValue
-                    }, 0);
-                    yearMarker.innerHTML = value;
-                    avgMarker.innerHTML = `Average temp for the year: ${(sum / 12)}`
+                function updateGraphData() {
+                    let result = Object.keys(dataDict).map(year => Object.keys(dataDict[year]).map(month => dataDict[year][month].averageTemp))
                     Plotly.newPlot(TESTER, [{
-                        x: xVals,
-                        y: yVals
+                        z: result,
+                        x: [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ],
+                        y: Object.keys(dataDict).map(year => parseInt(year)),
+                        type: 'heatmap',
+                        hoverongaps: false
                     }], getLayout());
                 }
 
-                updateGraphData(slider.value)
-
-                slider.oninput = function() {
-                    updateGraphData(this.value)
-                }
+                updateGraphData()
             })
             .catch((e) => console.error(e));
     </script>
